@@ -5,10 +5,10 @@ import requests
 # -----------------------------
 # Config
 # -----------------------------
-API_URL = "http://localhost:8000/rag/single-verify-claim"  # change later
+API_URL = "http://13.234.60.125:8000/rag/single-verify-claim"  # change later
 FIXED_COLLECTION = "label"
 FIXED_TOP_K = 9
-USE_DUMMY_RESPONSE = True  # set False when API is ready
+USE_DUMMY_RESPONSE = False  # set False when API is ready
 
 # -----------------------------
 # Dummy API Response
