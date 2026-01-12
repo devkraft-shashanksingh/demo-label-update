@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import requests
+from typing import Dict
 
 # -----------------------------
 # Config
@@ -9,6 +10,13 @@ API_URL = "http://13.234.60.125:8000/rag/single-verify-claim"  # change later
 FIXED_COLLECTION = "label"
 FIXED_TOP_K = 9
 USE_DUMMY_RESPONSE = False  # set False when API is ready
+
+EXAMPLES = [
+    "Braftovi_Encorafenib__Mektovi_Binimetinib",
+    "Cibinqo_Abrocitinib"
+    "Prolia_Denosumab",
+    "Imlygic_Talimogene_laherparepvec",
+]
 
 # -----------------------------
 # Dummy API Response
@@ -41,10 +49,10 @@ def dummy_response(claim_sentence):
 # -----------------------------
 # API Call
 # -----------------------------
-def verify_claim(claim_sentence):
+def verify_claim(claim_sentence: str, selected_example: str) -> Dict:
     payload = {
         "claim_sentence": claim_sentence,
-        "collection": FIXED_COLLECTION,
+        "collection": selected_example,
         "top_k": FIXED_TOP_K
     }
 
@@ -63,6 +71,12 @@ st.set_page_config(page_title="Claim Verification", layout="centered")
 
 st.title("🔍 Claim Verification")
 st.write("Enter a claim sentence below to verify it against the label sources.")
+
+selected_example = st.selectbox(
+    "Choose example (Brand name_Generic name):",
+    options=EXAMPLES
+)
+# st.caption(f"Selected: **{selected_example}**")
 
 claim_sentence = st.text_area(
     "Claim Sentence",
@@ -83,7 +97,7 @@ if verify_btn:
                 progress.progress(i * 20)
 
             try:
-                result = verify_claim(claim_sentence)
+                result = verify_claim(claim_sentence, selected_example)
                 progress.progress(100)
             except Exception as e:
                 st.error(f"Error while verifying claim: {e}")
@@ -119,5 +133,13 @@ if verify_btn:
         st.write(result["reasoning"])
 
         st.markdown("### Sources")
-        for src in result["sources"]:
-            st.write(f"- {src}")
+        if "struc_sources" in result and result["struc_sources"]:
+            for idx, src in enumerate(result["struc_sources"], 1):
+                st.markdown(f"**Source {idx}:**")
+                st.write(f"**Page no:** {src.get('page_number', 'N/A')} of file: **{src.get('source', 'N/A')}**")
+                st.write(f"**Heading:** {src.get('headings', 'N/A')}")
+                st.write(f"**Text:** {src.get('text', 'N/A')}")
+                st.divider()
+        else:
+            for src in result["sources"]:
+                st.write(f"- {src}")
