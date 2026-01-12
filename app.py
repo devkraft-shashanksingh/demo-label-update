@@ -13,9 +13,9 @@ USE_DUMMY_RESPONSE = False  # set False when API is ready
 
 EXAMPLES = [
     "Braftovi_Encorafenib__Mektovi_Binimetinib",
-    "Cibinqo_Abrocitinib"
+    "Cibinqo_Abrocitinib",
     "Prolia_Denosumab",
-    "Imlygic_Talimogene_laherparepvec",
+    "Imlygic_Talimogene_laherparepvec"
 ]
 
 # -----------------------------
