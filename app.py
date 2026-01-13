@@ -3,7 +3,6 @@ import time
 import requests
 from typing import Dict
 
-from torch import div
 
 # -----------------------------
 # Config
