@@ -3,6 +3,8 @@ import time
 import requests
 from typing import Dict
 
+from torch import div
+
 # -----------------------------
 # Config
 # -----------------------------
@@ -132,14 +134,61 @@ if verify_btn:
         st.markdown("### Reasoning")
         st.write(result["reasoning"])
 
-        st.markdown("### Sources")
-        if "struc_sources" in result and result["struc_sources"]:
-            for idx, src in enumerate(result["struc_sources"], 1):
-                st.markdown(f"**Source {idx}:**")
-                st.write(f"**Page no:** {src.get('page_number', 'N/A')} of file: **{src.get('source', 'N/A')}**")
-                st.write(f"**Heading:** {src.get('headings', 'N/A')}")
-                st.write(f"**Text:** {src.get('text', 'N/A')}")
-                st.divider()
-        else:
-            for src in result["sources"]:
+        # st.markdown("### Sources")
+        # if "struc_sources" in result and result["struc_sources"]:
+        #     for idx, src in enumerate(result["struc_sources"], 1):
+        #         st.markdown(f"**Source {idx}:**")
+        #         st.write(f"**Page no:** {src.get('page_number', 'N/A')} of file: **{src.get('source', 'N/A')}**")
+        #         st.write(f"**Heading:** {src.get('headings', 'N/A')}")
+        #         st.write(f"**Text:** {src.get('text', 'N/A')}")
+        #         st.divider()
+        # else:
+        #     for src in result["sources"]:
+        #         st.write(f"- {src}")
+        st.markdown("### Sources summary")
+        for src in result["sources"]:
                 st.write(f"- {src}")
+        
+        struc_sources = result.get("struc_sources", [])
+        st.divider()
+        if not struc_sources:
+            st.info("No detailed structured sources available.")
+        else:
+            st.markdown("### 📚 All Sources")
+            for idx, src in enumerate(struc_sources, 1):
+                with st.container(border=False):
+                
+                    # ----- Source title -----
+                    st.markdown(f"#### Source {idx}")
+
+                    # ----- Page + File (BLACK) -----
+                    page = src.get("page_number", "N/A")
+                    file = src.get("source", "N/A")
+
+                    st.markdown(
+                        f"""
+                        <div style="color:inherit; font-weight:500;">
+                            Page No: {page} &nbsp;|&nbsp; File: {file}
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    # st.write(f"Page No: {page} &nbsp;|&nbsp; File: {file}")
+
+                    # ----- Heading (GREEN) -----
+                    heading = src.get("headings", "N/A")
+                    if heading:
+                        st.markdown(
+                            f"""
+                            <div style="color:#22c55e; font-weight:600; margin-top:6px;">
+                                {heading}
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                    # ----- Text (NORMAL) -----
+                    text = src.get("text")
+                    # st.markdown(f"""<div style="margin-top:8px;">{text}</div>""", unsafe_allow_html=True)
+                    st.write(text)
+                    st.write(" ")
