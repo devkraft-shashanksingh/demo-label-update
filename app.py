@@ -115,17 +115,16 @@ if verify_btn:
         with col1:
             st.metric("Valid Claim", "Yes" if result["valid"] else "No")
         with col2:
-            st.metric("Confidence Score", f'{result["score"]:.2f}')
+            st.metric("Superscripts", f'{", ".join(result["superscripts"])}')
 
         st.markdown("### Original Sentence")
         st.write(result["sentence"])
 
-        st.markdown("### Superscripts")
-        st.write(", ".join(result["superscripts"]))
-
         if not result["valid"]:
             st.markdown("### Suggested Replacement")
             st.info(result["replacement_text"])
+
+        st.metric("Confidence Score", f'{result["score"]:.2f}')
 
         st.markdown("### Explanation")
         st.write(result["explanation"])
