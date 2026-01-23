@@ -164,29 +164,29 @@ st.markdown(
     """
     
     <h2 style="
-        color: #f9fafb;
+        color: var(--text-color);
         font-weight: 700;
         margin-top: 24px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     ">
         🔍 Claim Verification
     </h2>
-    
+
     <div style="
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         font-weight: 600;
-        color: #e5e7eb;
-        margin-bottom: 8px;
+        color: var(--secondary-text-color);
+        margin-bottom: 10px;
     ">
         Enter a claim sentence below to verify it against the label sources
     </div>
     
     <style>
-    /* Make textarea more visible & professional */
+    /* Theme-safe textarea styling */
     textarea {
-        background-color: #1f2937 !important;   /* dark slate */
-        color: #f9fafb !important;               /* near white text */
-        border: 1px solid #374151 !important;    /* subtle border */
+        background-color: var(--secondary-background-color) !important;
+        color: var(--text-color) !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
         border-radius: 12px !important;
         font-size: 1.05rem !important;
         line-height: 1.6 !important;
@@ -194,13 +194,13 @@ st.markdown(
     }
 
     textarea::placeholder {
-        color: #9ca3af !important;               /* soft placeholder */
+        color: var(--secondary-text-color) !important;
         font-style: italic;
     }
 
     textarea:focus {
-        border-color: #2563eb !important;        /* blue focus */
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
         outline: none;
     }
     </style>
