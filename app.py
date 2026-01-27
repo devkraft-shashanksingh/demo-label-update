@@ -171,7 +171,7 @@ if asset_file and st.session_state.pi_done and not st.session_state.asset_done:
         progress.progress(80)
         asset_process = requests.post(
             ASSET_PROCESS_API,
-            json={"key": asset_key, "start_page": 1, "end_page": 5}
+            json={"key": asset_key, "start_page": 1, "end_page": 3}
         )
         asset_process.raise_for_status()
 
