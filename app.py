@@ -16,7 +16,28 @@ ASSET_PROCESS_API = f"{API_BASE_URL}/process/process-asset"
 
 VERIFY_CLAIM_API = f"{API_BASE_URL}/rag/hybrid-single-verify-claim"
 
-FIXED_COLLECTION = "label_poc_21Jan"
+# -----------------------------------------------
+# COLLECTION NAME
+# -----------------------------------------------
+def get_collection_from_pi_filename(filename: str) -> str:
+    name = filename.lower()
+
+    if "braftovi" in name or "mektovi" in name:
+        return "label_poc_1"
+
+    if "cibinqo" in name or "abrocitinib" in name:
+        return "label_poc_2"
+
+    if "prolia" in name:
+        return "label_poc_3"
+
+    if "imlygic" in name:
+        return "label_poc_4"
+
+
+    # default / fallback
+    return "label_poc_default"
+
 
 # -------------------------------------------------
 # SESSION STATE INIT
@@ -80,6 +101,8 @@ if pi_files and not st.session_state.pi_done:
         #st.markdown(f"### Processing PI File {idx} of {len(pi_files)}")
 
         progress = st.progress(0)
+        if "collection" not in st.session_state:
+            st.session_state.collection = get_collection_from_pi_filename(pi_file.name)
 
         with st.spinner(f"Uploading PI document {idx}..."):
             progress.progress(10)
@@ -117,7 +140,7 @@ if pi_files and not st.session_state.pi_done:
                 PI_RAG_INDEX_API,
                 json={
                     "md_key": llm_md_path,
-                    "collection": FIXED_COLLECTION
+                    "collection": st.session_state.collection
                 }
             )
             rag_resp.raise_for_status()
@@ -148,7 +171,7 @@ if asset_file and st.session_state.pi_done and not st.session_state.asset_done:
         progress.progress(80)
         asset_process = requests.post(
             ASSET_PROCESS_API,
-            json={"key": asset_key, "start_page": 1, "end_page": 1}
+            json={"key": asset_key, "start_page": 1, "end_page": 5}
         )
         asset_process.raise_for_status()
 
@@ -211,9 +234,10 @@ st.markdown(
 
 
 claim_sentence = st.text_area(
-   "",
+    "Claim sentence",
+    height=240,
     placeholder="Type your claim sentence here...",
-    height=220
+    label_visibility="collapsed"
 )
 
 verify_btn = st.button("🔍 Verify Claim")
@@ -227,7 +251,7 @@ if verify_btn:
             VERIFY_CLAIM_API,
             json={
                 "claim_sentence": claim_sentence,
-                "collection": FIXED_COLLECTION
+                "collection": st.session_state.collection
             },
             timeout=60
         )
@@ -243,32 +267,73 @@ if verify_btn:
 
     # ---------------- OUTPUT ----------------
     st.subheader("📄 Verification Result")
+    replacement = result.get("replacement_text")
+    INVALID_VALUES = {None, "", "none", "null", "n/a", "na"}
+
+    has_insufficient_info = not (
+            isinstance(replacement, str)
+            and replacement.strip().lower() not in INVALID_VALUES
+    )
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Valid Claim", "Yes" if result["valid"] else "No")
+        st.markdown("**Valid Claim**")
+
+        if has_insufficient_info:
+            st.write("Insufficient Information")
+        else:
+            st.write("Yes" if result.get("valid") else "No")
+
     with col2:
-        st.metric("Superscripts", f'{", ".join(result["superscripts"])}')
+        supers = result.get("superscripts", [])
+        st.metric("Superscripts", ", ".join(supers) if supers else " ")
+
+    st.divider()
 
     st.markdown("### Original Sentence")
-    st.write(result["sentence"])
+    st.write(result.get("sentence", "—"))
 
-    if not result["valid"]:
+    if not result.get("valid", True):
         st.markdown("### Suggested Replacement")
-        st.info(result["replacement_text"])
-        st.metric("Confidence Score", f'{result["score"]:.2f}')
+
+        if(isinstance(replacement, str) and replacement.strip().lower() not in INVALID_VALUES):
+            # BLUE box (valid replacement)
+            st.info(replacement)
+        else:
+            # RED box (insufficient information)
+            st.markdown(
+                """
+                <div style="
+                    background-color: rgba(220, 38, 38, 0.15);
+                    border-left: 6px solid #dc2626;
+                    padding: 14px;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    color: #7f1d1d;
+                ">
+                    Not enough information is provided in the document.
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # Show confidence score ONLY if it exists
+        score = result.get("score")
+        if isinstance(score, (int, float)):
+            st.metric("Confidence Score", f"{score:.2f}")
 
     st.markdown("### Explanation")
-    st.write(result["explanation"])
+    st.write(result.get("explanation", " "))
 
     st.markdown("### Reasoning")
-    st.write(result["reasoning"])
+    st.write(result.get("reasoning", " "))
 
     st.markdown("### Sources Summary")
-    for src in result["sources"]:
+    for src in result.get("sources", []):
         st.write(f"- {src}")
 
     struc_sources = result.get("struc_sources", [])
     st.divider()
+
     if not struc_sources:
         st.info("No detailed structured sources available.")
     else:
