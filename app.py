@@ -19,24 +19,24 @@ VERIFY_CLAIM_API = f"{API_BASE_URL}/rag/hybrid-single-verify-claim"
 # -----------------------------------------------
 # COLLECTION NAME
 # -----------------------------------------------
-def get_collection_from_pi_filename(filename: str) -> str:
+def get_collection_and_endpage(filename: str):
     name = filename.lower()
 
     if "braftovi" in name or "mektovi" in name:
-        return "label_poc_1"
+        return "label_poc_1", 1
 
     if "cibinqo" in name or "abrocitinib" in name:
-        return "label_poc_2"
+        return "label_poc_2", 1
 
     if "prolia" in name:
-        return "label_poc_3"
+        return "label_poc_3", 1
 
     if "imlygic" in name:
-        return "label_poc_4"
+        return "label_poc_4", 1
 
+    # fallback
+    return "label_poc_default", 1
 
-    # default / fallback
-    return "label_poc_default"
 
 
 # -------------------------------------------------
@@ -95,6 +95,7 @@ with col_asset:
         type=["pdf", "docx"]
     )
 
+
 if pi_files and not st.session_state.pi_done:
 
     for idx, pi_file in enumerate(pi_files, 1):
@@ -102,7 +103,9 @@ if pi_files and not st.session_state.pi_done:
 
         progress = st.progress(0)
         if "collection" not in st.session_state:
-            st.session_state.collection = get_collection_from_pi_filename(pi_file.name)
+            collection, end_page = get_collection_and_endpage(pi_file.name)
+            st.session_state.collection = collection
+            st.session_state.end_page = end_page
 
         with st.spinner(f"Uploading PI document {idx}..."):
             progress.progress(10)
@@ -171,7 +174,7 @@ if asset_file and st.session_state.pi_done and not st.session_state.asset_done:
         progress.progress(80)
         asset_process = requests.post(
             ASSET_PROCESS_API,
-            json={"key": asset_key, "start_page": 1, "end_page": 3}
+            json={"key": asset_key, "start_page": 1, "end_page": st.session_state.end_page}
         )
         asset_process.raise_for_status()
 
