@@ -295,10 +295,12 @@ if verify_btn:
     st.markdown("### Original Sentence")
     st.write(result.get("sentence", "—"))
 
-    if not result.get("valid", True):
+    # Always show replacement section if info is insufficient OR invalid
+    if has_insufficient_info or not result.get("valid", True):
+
         st.markdown("### Suggested Replacement")
 
-        if(isinstance(replacement, str) and replacement.strip().lower() not in INVALID_VALUES):
+        if isinstance(replacement, str) and replacement.strip().lower() not in INVALID_VALUES:
             # BLUE box (valid replacement)
             st.info(replacement)
         else:
@@ -319,9 +321,14 @@ if verify_btn:
                 unsafe_allow_html=True
             )
 
-        # Show confidence score ONLY if it exists
+        # Show confidence score ONLY for invalid claims with a real replacement
         score = result.get("score")
-        if isinstance(score, (int, float)):
+
+        if (
+                not result.get("valid", True) and
+                not has_insufficient_info and
+                isinstance(score, (int, float))
+        ):
             st.metric("Confidence Score", f"{score:.2f}")
 
     st.markdown("### Explanation")
